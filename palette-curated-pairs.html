@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Курируемые пары цветов</title>
+<style>
+  :root {
+    --page-bg: #0d0b18;
+    --ink: #f4f4f6;
+    --muted: #8b8b98;
+    --panel: #17151f;
+    --border: rgba(255,255,255,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--page-bg);
+    color: var(--ink);
+    padding: 48px 40px 80px;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+  header { max-width: 880px; margin: 0 auto 40px; }
+  h1 {
+    margin: 0 0 12px;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .lede { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 0 0 18px; max-width: 680px; }
+  .legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 12px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .legend b { color: var(--ink); font-weight: 600; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .card {
+    border-radius: 16px;
+    padding: 32px 28px 24px;
+    position: relative;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    transition: transform 0.15s ease;
+  }
+  .card:hover { transform: translateY(-2px); }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .color-name {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .contrast-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: currentColor;
+    font-variant-numeric: tabular-nums;
+  }
+  .contrast-badge span { color: var(--card-bg); filter: invert(0); }
+  /* use a wrapping trick via data attributes */
+  .contrast-badge {
+    background: rgba(255,255,255,0.14);
+    backdrop-filter: blur(8px);
+  }
+  .card.is-light .contrast-badge {
+    background: rgba(0,0,0,0.12);
+  }
+
+  .display {
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin: 0 0 14px;
+  }
+  .body-sample {
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 0;
+    font-weight: 400;
+    opacity: 0.95;
+  }
+
+  .card-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    flex-wrap: wrap;
+  }
+  .chip {
+    padding: 4px 9px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(6px);
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .card.is-light .chip { background: rgba(0,0,0,0.10); }
+  .chip b { font-weight: 600; opacity: 0.65; }
+
+  /* Click hint */
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+  }
+  .card.is-light::after { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06); }
+
+  .toast {
+    position: fixed;
+    bottom: 32px; left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: #fff;
+    color: #0d0b18;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 100;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 600px) {
+    body { padding: 28px 20px 60px; }
+    .display { font-size: 44px; }
+    h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Курируемые пары — по одной на каждый фон</h1>
+  <p class="lede">
+    29 цветов (без Onyx 950 и White). Для каждого фона выбран один цвет текста — с приоритетом на современный тональный вид (близкие оттенки внутри семейства) при соблюдении читаемости по WCAG. Клик по карточке копирует пару в буфер.
+  </p>
+  <div class="legend">
+    <span><b>AAA</b> ≥ 7:1 — отлично для любого текста</span>
+    <span><b>AA</b> ≥ 4.5:1 — основное правило для текста</span>
+    <span><b>AA LG</b> ≥ 3:1 — только для крупного (18pt+ / 14pt bold)</span>
+  </div>
+</header>
+
+<div class="grid" id="grid"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const pairs = [
+  { bg:"#A953FF", bgName:"Orchid 500",    fg:"#260C44", fgName:"Smoke 900",      ratio:4.41, level:"AA LG" },
+  { bg:"#00D4FF", bgName:"Turquoise 400", fg:"#004462", fgName:"Turquoise 800",  ratio:5.92, level:"AA" },
+  { bg:"#6D26C9", bgName:"Orchid 700",    fg:"#CBC3FF", fgName:"Lavender 200",   ratio:4.62, level:"AA" },
+  { bg:"#6B5DFE", bgName:"Violet 550",    fg:"#BEF7FB", fgName:"Turquoise 100",  ratio:3.87, level:"AA LG" },
+  { bg:"#7FA9FE", bgName:"Sapphire 350",  fg:"#260C44", fgName:"Smoke 900",      ratio:7.39, level:"AAA" },
+  { bg:"#BEF7FB", bgName:"Turquoise 100", fg:"#004462", fgName:"Turquoise 800",  ratio:8.93, level:"AAA" },
+  { bg:"#260C44", bgName:"Smoke 900",     fg:"#CBC3FF", fgName:"Lavender 200",   ratio:10.50,level:"AAA" },
+  { bg:"#26085A", bgName:"Orchid 900",    fg:"#CD6BFF", fgName:"Amethyst 400",   ratio:5.65, level:"AA" },
+  { bg:"#004462", bgName:"Turquoise 800", fg:"#BEF7FB", fgName:"Turquoise 100",  ratio:8.93, level:"AAA" },
+  { bg:"#008BB5", bgName:"Turquoise 600", fg:"#260C44", fgName:"Smoke 900",      ratio:4.40, level:"AA LG" },
+  { bg:"#01715B", bgName:"Aquamarine 700",fg:"#1DFFB4", fgName:"Aquamarine 300", ratio:4.56, level:"AA" },
+  { bg:"#1DFFB4", bgName:"Aquamarine 300",fg:"#01715B", fgName:"Aquamarine 700", ratio:4.56, level:"AA" },
+  { bg:"#19F3FF", bgName:"Cyan 300",      fg:"#004462", fgName:"Turquoise 800",  ratio:7.64, level:"AAA" },
+  { bg:"#15C88C", bgName:"Malachite 350", fg:"#260C44", fgName:"Smoke 900",      ratio:7.94, level:"AAA" },
+  { bg:"#5915E1", bgName:"Lavender 750",  fg:"#CBC3FF", fgName:"Lavender 200",   ratio:4.88, level:"AA" },
+  { bg:"#CD6BFF", bgName:"Amethyst 400",  fg:"#26085A", fgName:"Orchid 900",     ratio:5.65, level:"AA" },
+  { bg:"#F67BB4", bgName:"Pink 350",      fg:"#420039", fgName:"Crimson 900",    ratio:6.52, level:"AA" },
+  { bg:"#FF36B5", bgName:"Magenta 500",   fg:"#420039", fgName:"Crimson 900",    ratio:4.99, level:"AA" },
+  { bg:"#FF0101", bgName:"Fire 700",      fg:"#260C44", fgName:"Smoke 900",      ratio:4.31, level:"AA LG" },
+  { bg:"#FF5702", bgName:"Fire 550",      fg:"#420039", fgName:"Crimson 900",    ratio:5.13, level:"AA" },
+  { bg:"#A80006", bgName:"Fire 800",      fg:"#FFCFA7", fgName:"Pumpkin 150",    ratio:5.52, level:"AA" },
+  { bg:"#FF3254", bgName:"Crimson 550",   fg:"#420039", fgName:"Crimson 900",    ratio:4.52, level:"AA" },
+  { bg:"#D06F00", bgName:"Yellow 500",    fg:"#260C44", fgName:"Smoke 900",      ratio:4.89, level:"AA" },
+  { bg:"#FFD706", bgName:"Yellow 200",    fg:"#420039", fgName:"Crimson 900",    ratio:11.60,level:"AAA" },
+  { bg:"#420039", bgName:"Crimson 900",   fg:"#FAC2FA", fgName:"Fuchsia 150",    ratio:10.97,level:"AAA" },
+  { bg:"#7C007C", bgName:"Fuchsia 800",   fg:"#FAC2FA", fgName:"Fuchsia 150",    ratio:6.59, level:"AA" },
+  { bg:"#FFCFA7", bgName:"Pumpkin 150",   fg:"#A80006", fgName:"Fire 800",       ratio:5.52, level:"AA" },
+  { bg:"#FAC2FA", bgName:"Fuchsia 150",   fg:"#7C007C", fgName:"Fuchsia 800",    ratio:6.59, level:"AA" },
+  { bg:"#CBC3FF", bgName:"Lavender 200",  fg:"#5915E1", fgName:"Lavender 750",   ratio:4.88, level:"AA" },
+];
+
+function isLight(hex) {
+  const h = hex.replace('#','');
+  const r = parseInt(h.substr(0,2),16)/255;
+  const g = parseInt(h.substr(2,2),16)/255;
+  const b = parseInt(h.substr(4,2),16)/255;
+  const toLin = v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
+  const L = 0.2126*toLin(r)+0.7152*toLin(g)+0.0722*toLin(b);
+  return L > 0.5;
+}
+
+const grid = document.getElementById('grid');
+pairs.forEach(p => {
+  const card = document.createElement('div');
+  card.className = 'card' + (isLight(p.bg) ? ' is-light' : '');
+  card.style.background = p.bg;
+  card.style.color = p.fg;
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="color-name">${p.bgName}</div>
+      <div class="contrast-badge">${p.ratio.toFixed(2)} · ${p.level}</div>
+    </div>
+    <div>
+      <div class="display">Aa</div>
+      <p class="body-sample">The quick brown fox jumps over the lazy dog. Съешь ещё этих мягких французских булок.</p>
+    </div>
+    <div class="card-footer">
+      <span class="chip"><b>BG</b> ${p.bg}</span>
+      <span class="chip"><b>FG</b> ${p.fg}</span>
+    </div>
+  `;
+  card.addEventListener('click', () => {
+    const text = `background: ${p.bg}; color: ${p.fg};`;
+    navigator.clipboard.writeText(text);
+    const t = document.getElementById('toast');
+    t.textContent = `Скопировано: ${text}`;
+    t.classList.add('show');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => t.classList.remove('show'), 1400);
+  });
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>
